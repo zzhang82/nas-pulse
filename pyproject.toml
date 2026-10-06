@@ -1,0 +1,48 @@
+[project]
+name = "nas-pulse"
+version = "0.1.0"
+description = "Real-time clinical status diagnostic tool for Synology NAS, hardware vitals, and Docker hygiene"
+readme = "README.md"
+authors = [
+    { name = "Frank Zhang", email = "zzhang82@users.noreply.github.com" }
+]
+license = { text = "MIT" }
+keywords = ["synology", "nas", "homelab", "docker", "portainer", "diagnostics", "cli", "agent-skill"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Systems Administration"
+]
+dependencies = [
+    "synology-api>=0.6.0",
+    "requests>=2.31.0",
+    "rich>=13.7.0",
+    "python-dotenv>=1.0.0",
+    "urllib3>=2.0.0"
+]
+requires-python = ">=3.10"
+
+[project.scripts]
+nas-pulse = "nas_pulse.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/zzhang82/nas-pulse"
+Repository = "https://github.com/zzhang82/nas-pulse"
+Issues = "https://github.com/zzhang82/nas-pulse/issues"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
