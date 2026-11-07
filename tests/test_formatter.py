@@ -54,6 +54,39 @@ class TestFormatter(unittest.TestCase):
         data_dict = report.to_dict()
         self.assertEqual(data_dict["vital_signs"]["cpu_temp_c"], 46)
         self.assertEqual(data_dict["docker"]["running_count"], 2)
+        self.assertIn("脉象极平，处于巅峰", soul_diag)
+
+    def test_distressed_vitals_do_not_read_as_peak(self):
+        distressed = {
+            "cpu_util": {"user_load": 80, "system_load": 10},
+            "mem_util": {"total_real": 8 * 1024 * 1024, "real_usage": 92, "cached": 1 * 1024 * 1024},
+            "cpu_temp": 81,
+            "vol_info": [{"total_size": 10 * (1024**4), "used_size": 9 * (1024**4)}],
+            "hdd_info": [{"smart_status": "normal", "temp": 40}, {"smart_status": "warning", "temp": 48}],
+            "sys_health": {"data": {"uptime": "24:00:00"}},
+            "containers": [],
+            "resources": [],
+        }
+        report = PulseReport(vitals=distressed)
+        soul = report.generate_soul_diagnosis()
+        self.assertNotIn("巅峰", soul)
+        self.assertIn("脉象不稳", soul)
+        self.assertIn("注意散热", soul)
+        self.assertIn("气血大亏", soul)
+        self.assertIn("疑似有损", soul)
+
+        rendered = _render(report)
+        self.assertIn("内存吃紧", rendered)
+        self.assertIn("骨骼告警", rendered)
+        self.assertIn("腹心胀满", rendered)
+        self.assertNotIn("健康无异响", rendered)
+        self.assertNotIn("胃口良好", rendered)
+
+def _render(report: PulseReport) -> str:
+    from rich.console import Console
+    console = Console(record=True, width=120)
+    report.render(console=console)
+    return console.export_text()
 
 if __name__ == "__main__":
     unittest.main()

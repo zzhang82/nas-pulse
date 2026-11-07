@@ -1,7 +1,7 @@
 ---
 name: nas-pulse
 description: Real-time clinical status diagnostic tool for Synology NAS, Docker/Portainer hygiene, and hardware thermal vitals.
-version: 0.1.0
+version: 0.1.1
 author: Frank Zhang (zzhang82)
 license: MIT
 metadata:

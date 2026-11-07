@@ -112,15 +112,19 @@ class PulseReport:
 
     def generate_soul_diagnosis(self) -> str:
         """Formulate the signature clinical diagnosis in doctor tone."""
+        distressed = False
         if self.cpu_temp > 70:
             cpu_vibe = "体温烫手，注意散热排风"
+            distressed = True
         elif self.cpu_temp > 55:
             cpu_vibe = "体温微热"
+            distressed = True
         else:
             cpu_vibe = "体温冰凉无汗"
 
         if self.real_usage > 85:
             ram_vibe = "气血大亏，内存吃紧"
+            distressed = True
         elif self.real_usage > 65:
             ram_vibe = "气血运转平稳"
         else:
@@ -130,8 +134,30 @@ class PulseReport:
             disk_vibe = f"磁盘骨骼{self.disks_health}"
         else:
             disk_vibe = f"磁盘骨骼疑似有损({self.disks_health})"
+            distressed = True
 
-        return f"“{cpu_vibe}（{self.cpu_temp}℃），{ram_vibe}，{disk_vibe}，脉象极平，处于巅峰。”"
+        pulse = "脉象不稳，需要照看" if distressed else "脉象极平，处于巅峰"
+        return f"“{cpu_vibe}（{self.cpu_temp}℃），{ram_vibe}，{disk_vibe}，{pulse}。”"
+
+    def _ram_verdict(self) -> str:
+        cache = f"缓存 / Cache: {self.cached_gb:.1f} GB"
+        if self.real_usage > 85:
+            return f"内存吃紧 / Tight ({cache})"
+        if self.real_usage > 65:
+            return f"运转平稳 / Steady ({cache})"
+        return f"充沛 / Ample ({cache})"
+
+    def _disk_verdict(self) -> str:
+        if "全绿" in self.disks_health:
+            return f"健康无异响 (盘温 {self.temp_range})"
+        return f"骨骼告警 / Check disks (盘温 {self.temp_range})"
+
+    def _volume_verdict(self) -> str:
+        if self.usage_pct >= 85:
+            return f"腹心胀满 / Tight (使用率 {self.usage_pct:.1f}%)"
+        if self.usage_pct >= 70:
+            return f"渐满 / Filling (使用率 {self.usage_pct:.1f}%)"
+        return f"胃口良好 (使用率 {self.usage_pct:.1f}%)"
 
     def to_dict(self) -> dict[str, Any]:
         """Convert report to serializable dictionary for JSON export."""
@@ -190,17 +216,17 @@ class PulseReport:
         table.add_row(
             "气血 / RAM Usage",
             f"{self.real_usage}% ({self.used_gb:.1f} GB / {self.total_gb:.1f} GB)",
-            f"正常 / Normal (缓存 / Cache: {self.cached_gb:.1f} GB)",
+            self._ram_verdict(),
         )
         table.add_row(
             "骨骼 / Disk Status",
             self.disks_health,
-            f"健康无异响 (盘温 {self.temp_range})",
+            self._disk_verdict(),
         )
         table.add_row(
             "腹心 / Volume Space",
             f"已用 {self.used_tb:.1f} TB / 剩余 {self.free_tb:.1f} TB",
-            f"胃口良好 (使用率 {self.usage_pct:.1f}%)",
+            self._volume_verdict(),
         )
         table.add_row(
             "心跳 / Uptime",
